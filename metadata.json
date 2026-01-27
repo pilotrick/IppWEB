@@ -1,0 +1,8 @@
+{
+  "name": "International Pack & Paper",
+  "description": "Plataforma de comercio electrónico B2B para International Pack and Paper. Soluciones de empaque y limpieza para el Caribe.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
