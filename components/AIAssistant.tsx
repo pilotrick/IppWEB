@@ -2,14 +2,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, MessageRole } from '../types';
 import { sendChatMessage } from '../services/geminiService';
-import { Send, Image as ImageIcon, Loader2, Sparkles, Mic, Bot } from 'lucide-react';
+import { Send, Image as ImageIcon, Loader2, Sparkles, Bot, BrainCircuit, X } from 'lucide-react';
 
 const AIAssistant: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
       role: MessageRole.MODEL,
-      text: 'Bienvenido a la conserjería digital de IPP. Soy tu Consultor de Experiencias. \n\n¿Deseas elevar la presentación de tus bebidas, optimizar tu logística de empaque o buscar soluciones eco-amigables? Estoy aquí para diseñar la solución perfecta.'
+      text: 'Bienvenido a la Inteligencia Logística de IPP. Estoy utilizando razonamiento avanzado para optimizar su cadena de suministro.\n\n¿Desea analizar su mix de productos, solicitar una cotización compleja o verificar rutas de entrega?'
     }
   ]);
   const [input, setInput] = useState('');
@@ -18,21 +18,14 @@ const AIAssistant: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  useEffect(() => scrollToBottom(), [messages]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
-      };
+      reader.onloadend = () => setSelectedImage(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -48,8 +41,9 @@ const AIAssistant: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMsg]);
+    const currentInput = input;
+    const currentImage = selectedImage;
     setInput('');
-    const imageToSend = selectedImage ? selectedImage.split(',')[1] : undefined;
     setSelectedImage(null);
     setIsLoading(true);
 
@@ -59,14 +53,14 @@ const AIAssistant: React.FC = () => {
     }));
 
     try {
-      const responseText = await sendChatMessage(history, userMsg.text || (imageToSend ? "Describe esta imagen" : "Hola"), imageToSend);
+      const imageToSend = currentImage ? currentImage.split(',')[1] : undefined;
+      const responseText = await sendChatMessage(history, currentInput || "Analizar requerimiento", imageToSend);
       
-      const aiMsg: ChatMessage = {
+      setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: MessageRole.MODEL,
         text: responseText
-      };
-      setMessages(prev => [...prev, aiMsg]);
+      }]);
     } catch (error) {
       console.error(error);
     } finally {
@@ -75,108 +69,110 @@ const AIAssistant: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-80px)] container mx-auto px-4 py-6 flex flex-col">
-      <div className="bg-white rounded-2xl shadow-xl flex-grow flex flex-col overflow-hidden border border-gray-200">
+    <div className="h-[calc(100vh-120px)] container mx-auto px-4 py-8">
+      <div className="bg-white rounded-[2.5rem] shadow-2xl flex flex-col h-full overflow-hidden border border-gray-100">
         
-        {/* Chat Header */}
-        <div className="bg-ipp-navy p-4 flex items-center justify-between border-b border-white/10">
+        {/* Modern Header */}
+        <div className="bg-ipp-navy p-6 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="bg-white/10 p-2.5 rounded-full border border-white/20">
-              <Bot className="text-ipp-green" size={24} />
+            <div className="bg-ipp-cyan/20 p-3 rounded-2xl border border-ipp-cyan/30">
+              <BrainCircuit className="text-ipp-cyan animate-pulse" size={24} />
             </div>
             <div>
-              <h3 className="text-white font-bold font-display tracking-wide">Consultor IPP</h3>
-              <p className="text-gray-300 text-xs flex items-center">
-                 <span className="w-2 h-2 bg-green-500 rounded-full mr-1.5 animate-pulse"></span>
-                 En línea ahora
-              </p>
+              <h3 className="text-white font-black font-display tracking-tight text-lg">Consultor Estratégico AI</h3>
+              <div className="flex items-center text-ipp-green text-[10px] font-black uppercase tracking-widest mt-0.5">
+                 <div className="w-1.5 h-1.5 bg-ipp-green rounded-full mr-2 animate-pulse shadow-[0_0_8px_#8CC63F]"></div>
+                 Thinking Mode: Active (Gemini 3 Pro)
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Messages Area */}
-        <div className="flex-grow overflow-y-auto p-6 space-y-6 bg-gray-50">
+        {/* Chat Messages */}
+        <div className="flex-grow overflow-y-auto p-8 space-y-8 bg-gray-50/50">
           {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.role === MessageRole.USER ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[80%] rounded-2xl p-5 shadow-sm ${
+            <div key={msg.id} className={`flex ${msg.role === MessageRole.USER ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[75%] group ${msg.role === MessageRole.USER ? 'flex flex-col items-end' : 'flex flex-col items-start'}`}>
+                <div className={`p-6 rounded-3xl shadow-sm relative ${
                   msg.role === MessageRole.USER
-                    ? 'bg-ipp-navy text-white rounded-br-none'
-                    : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
-                }`}
-              >
-                {msg.image && (
-                  <img src={msg.image} alt="Upload" className="max-w-xs rounded-lg mb-3 border border-white/20" />
-                )}
-                <div className="whitespace-pre-wrap text-sm leading-relaxed font-medium">{msg.text}</div>
+                    ? 'bg-ipp-navy text-white rounded-tr-none'
+                    : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
+                }`}>
+                  {msg.image && <img src={msg.image} alt="Upload" className="max-w-xs rounded-xl mb-4 border border-white/20 shadow-lg" />}
+                  <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                </div>
               </div>
             </div>
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-white p-4 rounded-2xl rounded-bl-none border border-gray-100 shadow-sm flex items-center space-x-3">
-                <Loader2 className="animate-spin text-ipp-cyan" size={20} />
-                <span className="text-gray-500 text-sm font-medium">Analizando requerimientos...</span>
+              <div className="bg-white p-6 rounded-3xl rounded-tl-none border border-gray-100 shadow-xl flex flex-col space-y-4 max-w-sm animate-fade-in-up">
+                <div className="flex items-center space-x-3">
+                  <Loader2 className="animate-spin text-ipp-cyan" size={20} />
+                  <span className="text-xs font-black text-ipp-navy uppercase tracking-widest">Razonando Solución...</span>
+                </div>
+                <div className="space-y-2">
+                   <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-ipp-cyan animate-[progress_2s_infinite] w-1/3"></div>
+                   </div>
+                   <p className="text-[10px] text-gray-400 font-bold italic">Analizando inventario en Santo Domingo y Punta Cana...</p>
+                </div>
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
-        <div className="p-5 bg-white border-t border-gray-100">
+        {/* Input Controls */}
+        <div className="p-6 bg-white border-t border-gray-100">
           {selectedImage && (
-            <div className="mb-3 inline-flex items-center bg-blue-50 border border-blue-100 rounded-lg p-2 pr-4">
-              <img src={selectedImage} alt="Selected" className="h-10 w-10 object-cover rounded mr-3" />
-              <span className="text-xs text-blue-800 font-bold truncate max-w-[200px]">Imagen lista para análisis</span>
-              <button onClick={() => setSelectedImage(null)} className="ml-3 text-gray-400 hover:text-red-500">
-                &times;
+            <div className="mb-4 inline-flex items-center bg-ipp-cyan/10 border border-ipp-cyan/20 rounded-2xl p-2 pr-4 animate-fade-in-up">
+              <img src={selectedImage} alt="Selected" className="h-12 w-12 object-cover rounded-xl mr-3" />
+              <span className="text-[10px] text-ipp-navy font-black uppercase tracking-widest">Imagen Cargada</span>
+              <button onClick={() => setSelectedImage(null)} className="ml-3 text-gray-400 hover:text-red-500 transition-colors">
+                <X size={16} />
               </button>
             </div>
           )}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-4">
             <button 
               onClick={() => fileInputRef.current?.click()}
-              className="p-3 text-gray-400 hover:text-ipp-navy hover:bg-gray-50 rounded-full transition-colors"
-              title="Subir imagen"
+              className="p-4 text-gray-400 hover:text-ipp-navy hover:bg-gray-100 rounded-2xl transition-all"
+              title="Adjuntar imagen logística"
             >
-              <ImageIcon size={22} />
+              <ImageIcon size={24} />
             </button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept="image/*" 
-              onChange={handleImageSelect}
-            />
+            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageSelect} />
             
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Escribe tu consulta creativa aquí..."
-              className="flex-grow bg-gray-50 text-gray-800 rounded-xl px-5 py-3.5 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-ipp-cyan/50 focus:border-ipp-cyan transition-all placeholder-gray-400 font-medium"
+              placeholder="Describa su requerimiento o problema logístico..."
+              className="flex-grow bg-gray-50 text-ipp-navy rounded-2xl px-6 py-4 border-2 border-transparent focus:border-ipp-cyan focus:bg-white outline-none transition-all font-medium placeholder-gray-400"
             />
             
             <button 
               onClick={handleSend}
-              disabled={isLoading || (!input && !selectedImage)}
-              className={`p-3.5 rounded-xl text-white shadow-md transition-all ${
-                isLoading || (!input && !selectedImage)
+              disabled={isLoading || (!input.trim() && !selectedImage)}
+              className={`p-4 rounded-2xl text-white shadow-xl transition-all transform active:scale-95 ${
+                isLoading || (!input.trim() && !selectedImage)
                   ? 'bg-gray-200 cursor-not-allowed'
-                  : 'bg-ipp-green hover:bg-[#7ab332] hover:shadow-lg'
+                  : 'bg-ipp-green hover:bg-[#7ab332]'
               }`}
             >
-              <Send size={20} />
+              <Send size={24} />
             </button>
           </div>
         </div>
-
       </div>
+      <style>{`
+        @keyframes progress {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(300%); }
+        }
+      `}</style>
     </div>
   );
 };

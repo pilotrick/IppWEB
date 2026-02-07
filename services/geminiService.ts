@@ -1,156 +1,153 @@
+
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Product } from '../types';
 import { PRODUCTS } from '../constants';
 
-const apiKey = process.env.API_KEY;
-// Initialize with safety check, though implementation assumes key is present in env
-const ai = new GoogleGenAI({ apiKey: apiKey || 'dummy-key' });
+const MODEL_PRO = "gemini-3-pro-preview";
+const MODEL_IMAGE = "gemini-2.5-flash-image";
+const THINKING_BUDGET = 32768;
 
 /**
- * Chat with the AI Assistant using Gemini 3 Pro for reasoning.
+ * Chat with the IPP Logistics Strategy Consultant
+ * Now using Thinking Mode for complex supply chain reasoning
  */
 export const sendChatMessage = async (
   history: { role: string; parts: { text: string }[] }[],
   newMessage: string,
   imageData?: string
 ): Promise<string> => {
-  if (!apiKey) return "Error: API Key faltante.";
-
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   try {
-    const modelId = "gemini-3-pro-preview";
-    
-    // Construct the context about the company
     const systemInstruction = `
-      Eres el 'Consultor de Experiencias' de International Pack & Paper (IPP). No eres un simple vendedor, eres un experto en elevar la experiencia del cliente a través del empaque y la higiene.
+      Eres el 'Consultor Senior de Estrategia Logística' de International Pack & Paper (IPP).
       
-      Tono de voz: Creativo, sofisticado, persuasivo y experto. Usa lenguaje sensorial.
+      TU MISIÓN: Resolver problemas complejos de suministro para HORECA (Hoteles, Restaurantes, Cafeterías) en República Dominicana.
       
-      Misión: Ayudar a hoteles, restaurantes y clínicas del Caribe a transformar insumos básicos en ventajas competitivas.
+      CONTEXTO ESTRATÉGICO:
+      - Operaciones: Santo Domingo (Central) y Punta Cana (HUB).
+      - Ventaja Competitiva: Almacenaje externo, Logística Just-in-Time, Sostenibilidad (Bio-empaques).
       
-      Catálogo actual (referencia):
-      ${JSON.stringify(PRODUCTS.map(p => `${p.name} (SKU: ${p.sku}) - Precio: $${p.price} por ${p.udm} - Stock: ${p.stock}`))}
+      CATÁLOGO DISPONIBLE: ${JSON.stringify(PRODUCTS.map(p => `${p.name} (SKU: ${p.sku}) - $${p.price}`))}.
       
-      Si te preguntan por productos, no solo des características, vende el beneficio emocional y la experiencia.
-      Ejemplo: En lugar de "Vaso de plástico", di "La transparencia cristalina que tus cócteles merecen".
-      
-      Si te envían una foto, analiza el estilo y sugiere cómo los productos de IPP pueden mejorar esa presentación.
+      TONO: Ejecutivo, analítico, experto y dominicano-corporativo. 
+      Usa tu presupuesto de pensamiento para analizar la mejor ruta logística o mix de productos antes de responder.
     `;
 
-    const contents = [];
-    
-    // Add history (simplified for single-turn or simple context management in this demo)
-    // In a real app, we'd map the full ChatMessage history to the API format properly.
-    
     const userParts: any[] = [{ text: newMessage }];
-    
     if (imageData) {
       userParts.push({
         inlineData: {
-          mimeType: "image/jpeg", // Assuming jpeg for simplicity, strictly should detect
+          mimeType: "image/jpeg",
           data: imageData
         }
       });
     }
 
+    const contents = [...history, { role: 'user', parts: userParts }];
+
     const response = await ai.models.generateContent({
-      model: modelId,
-      contents: [
-        { role: 'user', parts: userParts }
-      ],
+      model: MODEL_PRO,
+      contents: contents,
       config: {
         systemInstruction: systemInstruction,
-        thinkingConfig: { thinkingBudget: 32768 } // Max budget for Gemini 3 Pro
+        thinkingConfig: { thinkingBudget: THINKING_BUDGET }
       }
     });
 
-    return response.text || "Lo siento, mi creatividad se ha pausado momentáneamente. ¿Podrías repetir eso?";
-
+    return response.text || "No pude procesar la consulta logística en este momento.";
   } catch (error) {
-    console.error("Error calling Gemini:", error);
-    return "Hubo un error de conexión con el consultor inteligente.";
+    console.error("Chat error:", error);
+    return "Error de conexión con el motor de inteligencia de IPP.";
   }
 };
 
 /**
- * Edit an image using Gemini 2.5 Flash Image (Nano Banana) to visualize branding.
- * Example: "Add the IPP logo to this cup"
+ * IPP Content Engine: Generates marketing copy with deep strategic reasoning
  */
-export const visualizeBranding = async (
-  base64Image: string,
-  prompt: string
-): Promise<string | null> => {
-  if (!apiKey) return null;
-
+export const generateIppMarketingContent = async (
+  section: string,
+  specifics: string
+): Promise<string> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   try {
-    // Nano Banana / Flash Image for editing
-    const modelId = "gemini-2.5-flash-image"; 
-    
+    const prompt = `
+      Genera contenido B2B de alta conversión para IPP República Dominicana.
+      Sección: ${section}
+      Detalles: ${specifics}
+      
+      REQUISITOS ESTRATÉGICOS:
+      - Enfoque en beneficios operativos (ahorro de espacio, reducción de merma).
+      - Tono premium institucional.
+      - Salida en HTML estructurado para Odoo/Web.
+    `;
+
     const response = await ai.models.generateContent({
-      model: modelId,
+      model: MODEL_PRO,
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      config: {
+        thinkingConfig: { thinkingBudget: THINKING_BUDGET }
+      }
+    });
+
+    return response.text || "No se pudo generar el contenido estratégico.";
+  } catch (error) {
+    console.error("Content generation error:", error);
+    return "Error en el motor de generación de contenido.";
+  }
+};
+
+/**
+ * Generate high-quality Hero image using gemini-2.5-flash-image
+ * Fallback to high-quality stock image if quota exceeded
+ */
+export const generateHighQualityHero = async (): Promise<string | null> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  try {
+    const response = await ai.models.generateContent({
+      model: MODEL_IMAGE,
       contents: {
         parts: [
           {
-            text: `Actúa como un diseñador gráfico senior. Edita esta imagen para integrar branding corporativo de forma fotorrealista y artística: ${prompt}. La iluminación y las texturas deben ser perfectas.`,
+            text: 'Ultra-luxury B2B e-commerce commercial photography. Sharp focus on high-end sustainable packaging (premium kraft bags and recycled cups) on a reflective white surface. The background is a stunning cinematic Caribbean sunrise over a modern, clean-lined logistics port. Integrated into the image are subtle, elegant glassmorphic UI elements: a semi-transparent floating "Search Products..." bar, a glowing "24/7 Logistics" status badge, and a refined "Stock Available" indicator light. Soft morning tropical light, corporate navy blue and lime green accents, photorealistic, 8k resolution, minimalist and professional aesthetic.',
           },
-          {
-            inlineData: {
-              mimeType: "image/jpeg",
-              data: base64Image
-            }
-          }
-        ]
-      }
+        ],
+      },
     });
 
-    // Extract image from response
-    // Iterate through parts to find the inline data
-    if (response.candidates && response.candidates[0].content.parts) {
+    if (response.candidates?.[0]?.content?.parts) {
       for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData && part.inlineData.data) {
-          return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+        if (part.inlineData) {
+          return `data:image/png;base64,${part.inlineData.data}`;
         }
       }
     }
-    
-    return null;
-
-  } catch (error) {
-    console.error("Error generating branding:", error);
-    throw error;
+    throw new Error("No image data returned from model");
+  } catch (error: any) {
+    console.warn("AI Image generation failed (Quota/429), using premium fallback:", error.message);
+    // Reliable high-end stock image as fallback
+    return "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop";
   }
 };
 
 /**
- * Generates a hero image for the landing page showing products in a Caribbean setting.
+ * Visualize branding on products
  */
-export const generateHeroImage = async (): Promise<string | null> => {
-  if (!apiKey) return null;
-
-  try {
-    // Use gemini-2.5-flash-image for generation (Nano Banana)
-    const modelId = "gemini-2.5-flash-image";
-    // Improved prompt for a high-end commercial look matching the user's "Golden Hour / Caribbean" request
-    const prompt = "A high-end commercial product photography shot of eco-friendly disposable food containers and paper cups stacked elegantly on a rustic wooden table. In the background, out of focus, is a stunning Caribbean beach during golden hour with warm sunlight and palm trees. The lighting is cinematic, highlighting the texture of the packaging. 8k resolution, photorealistic, advertising quality.";
-
-    const response = await ai.models.generateContent({
-      model: modelId,
-      contents: {
-        parts: [{ text: prompt }]
-      }
-    });
-
-    if (response.candidates && response.candidates[0].content.parts) {
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData && part.inlineData.data) {
-          return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-        }
-      }
+export const visualizeBranding = async (base64Image: string, prompt: string): Promise<string | null> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash-image",
+    contents: {
+      parts: [
+        { text: `Integra este branding de forma realista en el producto: ${prompt}` },
+        { inlineData: { mimeType: "image/jpeg", data: base64Image } }
+      ]
     }
-    
-    return null;
-
-  } catch (error) {
-    console.error("Error generating hero image:", error);
-    return null;
+  });
+  
+  if (response.candidates?.[0]?.content?.parts) {
+    for (const part of response.candidates[0].content.parts) {
+      if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
+    }
   }
+  return null;
 };

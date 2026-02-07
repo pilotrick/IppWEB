@@ -1,31 +1,61 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Loader2, Sparkles, Star, Package, ShieldCheck, MapPin } from 'lucide-react';
-import { generateHeroImage } from '../services/geminiService';
+import { ArrowRight, Loader2, Sparkles, ShieldCheck, MapPin, Package, Building2, ChevronRight, CheckCircle2, Key } from 'lucide-react';
+import { generateHighQualityHero } from '../services/geminiService';
+
+declare global {
+  // Extending the existing AIStudio interface to avoid conflicts with global declarations
+  // and satisfy the requirement that aistudio property on Window must be of type AIStudio.
+  interface AIStudio {
+    hasSelectedApiKey: () => Promise<boolean>;
+    openSelectKey: () => Promise<void>;
+  }
+}
 
 const Hero: React.FC = () => {
   const [heroImage, setHeroImage] = useState<string | null>(null);
   const [isLoadingImage, setIsLoadingImage] = useState(true);
   const [scrollY, setScrollY] = useState(0);
+  const [hasUserKey, setHasUserKey] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadHeroImage = async () => {
-      setIsLoadingImage(true);
-      try {
-        // Attempt to get a fresh, high-end AI image
-        const image = await generateHeroImage();
-        if (image) {
-          setHeroImage(image);
-        }
-      } catch (error) {
-        console.error("Failed to load AI hero image", error);
-      } finally {
-        setIsLoadingImage(false);
+    const checkKey = async () => {
+      // Use type casting to ensure the compiler doesn't complain about the global property
+      // while we rely on the environment-provided aistudio object.
+      const aistudio = (window as any).aistudio;
+      if (aistudio) {
+        const selected = await aistudio.hasSelectedApiKey();
+        setHasUserKey(selected);
       }
     };
-    
+    checkKey();
+  }, []);
+
+  const handleSelectKey = async () => {
+    const aistudio = (window as any).aistudio;
+    if (aistudio) {
+      await aistudio.openSelectKey();
+      // Assume success as per Gemini API guidelines for Veo key selection
+      setHasUserKey(true);
+      loadHeroImage(); // Retry loading with new key
+    }
+  };
+
+  const loadHeroImage = async () => {
+    setIsLoadingImage(true);
+    try {
+      const image = await generateHighQualityHero();
+      if (image) setHeroImage(image);
+    } catch (error) {
+      console.error("Failed to load hero image", error);
+    } finally {
+      setIsLoadingImage(false);
+    }
+  };
+
+  useEffect(() => {
     loadHeroImage();
   }, []);
 
@@ -44,126 +74,181 @@ const Hero: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const scrollToCatalog = () => {
+    const el = document.getElementById('catalog-anchor');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    else navigate('/catalog');
+  };
+
   return (
-    <div className="relative bg-white overflow-hidden">
-      {/* Background Elements - Parallax */}
-      <div 
-        className="absolute top-0 right-0 w-1/2 h-full bg-gray-50 -skew-x-12 translate-x-20 z-0 transition-transform duration-100 ease-linear will-change-transform"
-        style={{ transform: `translateX(5rem) translateY(${scrollY * 0.1}px) skewX(-12deg)` }}
-      ></div>
-      <div 
-        className="absolute top-1/2 left-0 w-64 h-64 bg-ipp-cyan opacity-5 rounded-full blur-3xl z-0 transition-transform duration-300 ease-out will-change-transform"
-        style={{ transform: `translateY(${-scrollY * 0.2}px)` }}
-      ></div>
-      
-      <div className="container mx-auto px-4 lg:px-6 relative z-10 pt-10 pb-20">
-        <div className="flex flex-col lg:flex-row items-center">
+    <div className="relative min-h-[90vh] lg:min-h-screen flex items-center bg-white overflow-hidden">
+      {/* Background Tech Mesh */}
+      <div className="absolute inset-0 z-0">
+        <div 
+          className="absolute top-0 right-0 w-2/3 h-full bg-gray-50/50 -skew-x-12 translate-x-1/4 transition-transform duration-300 ease-out will-change-transform"
+          style={{ transform: `translateX(25%) translateY(${scrollY * 0.05}px) skewX(-12deg)` }}
+        ></div>
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#003B5C 0.5px, transparent 0.5px)', backgroundSize: '24px 24px' }}></div>
+        <div className="absolute top-[20%] left-[10%] w-[500px] h-[500px] bg-ipp-cyan/5 rounded-full blur-[120px] animate-pulse"></div>
+        <div className="absolute bottom-[10%] right-[10%] w-[400px] h-[400px] bg-ipp-green/5 rounded-full blur-[100px]"></div>
+      </div>
+
+      <div className="container mx-auto px-4 lg:px-8 relative z-10 py-20 lg:py-0">
+        <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
           
-          {/* Left: Typography Impact */}
+          {/* Left: Strategic Message */}
           <div 
-            className="lg:w-1/2 relative z-20 mb-12 lg:mb-0 transition-all duration-300 ease-out will-change-transform"
-            style={{ 
-              transform: `translateY(${scrollY * 0.15}px)`,
-              opacity: Math.max(0, 1 - scrollY / 500) 
-            }}
+            className="lg:w-3/5 text-center lg:text-left transition-all duration-300 ease-out will-change-transform"
+            style={{ transform: `translateY(${scrollY * 0.08}px)`, opacity: Math.max(0, 1 - scrollY / 900) }}
           >
-            <div className="inline-flex items-center space-x-2 mb-6 bg-ipp-navy text-white px-4 py-1.5 rounded-full shadow-lg shadow-ipp-navy/20 animate-fade-in-up">
-              <Sparkles size={14} className="text-ipp-green" />
-              <span className="text-[10px] font-bold uppercase tracking-widest">Operador Logístico & Suministros</span>
+            <div className="inline-flex items-center space-x-2 mb-8 bg-ipp-navy text-white px-5 py-2.5 rounded-full shadow-2xl animate-fade-in-up">
+              <Building2 size={16} className="text-ipp-green" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em]">Dominican Supply Chain Leader</span>
             </div>
             
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-ipp-navy leading-[1.1] tracking-tighter mb-8 font-display">
-              SU ALIADO<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-ipp-cyan to-ipp-green">ESTRATÉGICO</span><br />
-              EN EL CARIBE
+            <h1 className="text-6xl sm:text-7xl lg:text-[100px] font-black text-ipp-navy leading-[0.85] tracking-tighter mb-10 font-display italic">
+              LOGÍSTICA<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-ipp-cyan to-ipp-green">INTEGRAL</span>
             </h1>
             
-            <p className="text-lg text-gray-500 mb-8 max-w-md leading-relaxed font-medium pl-2 border-l-4 border-ipp-green">
-              Desde <b>Santo Domingo</b> y <b>Punta Cana</b>, gestionamos el inventario crítico para su hotel, clínica o restaurante. Somos su departamento de compras externo.
+            <p className="text-xl text-gray-400 mb-12 max-w-2xl leading-relaxed font-medium mx-auto lg:mx-0 border-l-4 border-ipp-green pl-6">
+              Simplificamos la operación de <span className="text-ipp-navy font-bold">Hoteles y Restaurantes</span> con soluciones de empaque eco-amigables y una red de distribución "Just-In-Time" de clase mundial.
             </p>
             
-            <div className="flex flex-wrap gap-4 pl-2">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
               <button 
-                onClick={() => navigate('/contact')}
-                className="bg-ipp-navy text-white hover:bg-ipp-dark px-10 py-5 rounded-full font-bold text-lg shadow-xl shadow-ipp-navy/30 transition-all transform hover:scale-105 flex items-center group"
+                onClick={scrollToCatalog}
+                className="group relative bg-ipp-navy text-white px-12 py-6 rounded-2xl font-black text-lg shadow-[0_20px_40px_-10px_rgba(0,59,92,0.4)] transition-all hover:scale-105 active:scale-95 flex items-center"
               >
-                Hable con Nosotros
-                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                Acceso al Catálogo
+                <ArrowRight className="ml-3 group-hover:translate-x-2 transition-transform" />
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity"></div>
               </button>
-              <button 
-                onClick={() => navigate('/catalog')}
-                className="bg-gray-100 text-ipp-navy hover:bg-white px-10 py-5 rounded-full font-bold text-lg border border-gray-200 transition-all transform hover:scale-105 flex items-center"
-              >
-                Ver Productos
-              </button>
+              
+              {!hasUserKey && (
+                <button 
+                  onClick={handleSelectKey}
+                  className="group flex items-center text-[10px] font-black uppercase tracking-widest text-ipp-cyan hover:text-ipp-navy transition-colors bg-ipp-cyan/10 px-4 py-3 rounded-xl border border-ipp-cyan/20"
+                >
+                  <Key size={14} className="mr-2" />
+                  Usar mi Pro Key (Sin Límites)
+                </button>
+              )}
+
+              <div className="flex items-center space-x-4 px-6 py-4 bg-gray-50 rounded-2xl border border-gray-100">
+                <div className="flex -space-x-3">
+                  {[1,2,3].map(i => (
+                    <img key={i} src={`https://i.pravatar.cc/100?img=${i+10}`} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="Client" />
+                  ))}
+                </div>
+                <div className="text-left">
+                  <div className="flex text-ipp-green"><Sparkles size={10} className="fill-current"/><Sparkles size={10} className="fill-current"/><Sparkles size={10} className="fill-current"/></div>
+                  <p className="text-[10px] font-black text-ipp-navy uppercase">500+ Socios Activos</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Right: Immersive Visuals */}
-          <div className="lg:w-1/2 relative w-full h-[500px] lg:h-[700px]">
-            {/* Main Hero Image Frame */}
+          {/* Right: Immersive Visual with Fluid Scaling */}
+          <div className="lg:w-2/5 relative w-full aspect-square md:aspect-[4/3] lg:aspect-square">
             <div 
-                className="absolute inset-0 lg:left-10 lg:right-0 bg-gray-200 rounded-3xl overflow-hidden shadow-2xl transition-transform duration-100 ease-linear origin-center will-change-transform"
-                style={{ 
-                  transform: `translateY(${scrollY * 0.05}px) scale(${1 + scrollY * 0.0001}) rotate(${2 - scrollY * 0.001}deg)` 
-                }}
+              className={`w-full h-full rounded-[4rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,59,92,0.3)] transition-all duration-1000 ease-out will-change-transform ${isLoadingImage ? 'scale-90 opacity-40 blur-lg' : 'scale-100 opacity-100 blur-0'}`}
+              style={{ transform: `translateY(${scrollY * 0.04}px) rotate(${scrollY * 0.003}deg)` }}
             >
-               {isLoadingImage ? (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 text-gray-400">
-                    <Loader2 className="w-16 h-16 text-ipp-cyan animate-spin mb-4" />
-                    <p className="font-bold tracking-widest text-sm">RENDERIZANDO VISIÓN IA...</p>
-                    <p className="text-xs text-gray-400 mt-2">Simulando fotografía de producto (Hora Dorada)</p>
+              {isLoadingImage ? (
+                <div className="w-full h-full bg-gray-100 flex flex-col items-center justify-center p-12 text-center">
+                  <div className="relative mb-6">
+                    <Loader2 className="animate-spin text-ipp-cyan" size={56} strokeWidth={1.5} />
+                    <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-ipp-green animate-pulse" size={24} />
                   </div>
-               ) : (
-                  <img 
-                    src={heroImage || "https://images.unsplash.com/photo-1584473457406-6240486418e9?q=80&w=2070&auto=format&fit=crop"} 
-                    alt="IPP Logistics Visualization" 
-                    className="w-full h-full object-cover animate-fade-in-up"
-                  />
-               )}
-               <div className="absolute inset-0 bg-gradient-to-t from-ipp-navy/40 to-transparent mix-blend-multiply pointer-events-none"></div>
-            </div>
-
-            {/* Floating Glass Cards - Parallax Effect Layers */}
-            <div 
-              className="absolute bottom-10 -left-4 lg:left-0 bg-white/90 backdrop-blur-md p-5 rounded-2xl shadow-xl border border-white max-w-[240px] animate-fade-in-up transition-transform duration-200 ease-out will-change-transform" 
-              style={{ animationDelay: '0.2s', transform: `translateY(${-scrollY * 0.25}px)` }}
-            >
-               <div className="flex items-center space-x-3 mb-2">
-                 <div className="bg-green-100 p-2 rounded-full text-green-600">
-                   <ShieldCheck size={20} />
-                 </div>
-                 <span className="font-bold text-ipp-navy leading-none">Aliado<br/>Certificado</span>
-               </div>
-               <p className="text-xs text-gray-500">Optimizamos su flujo de caja mediante gestión de stock.</p>
-            </div>
-
-            <div 
-              className="absolute top-20 -right-4 lg:right-10 bg-ipp-navy/90 backdrop-blur-md p-5 rounded-2xl shadow-xl border border-white/10 text-white max-w-[200px] animate-fade-in-up transition-transform duration-200 ease-out will-change-transform" 
-              style={{ animationDelay: '0.4s', transform: `translateY(${scrollY * 0.2}px)` }}
-            >
-               <div className="flex items-center justify-between mb-2">
-                 <MapPin className="text-ipp-green" size={24} />
-                 <span className="text-xs font-bold bg-white/10 px-2 py-1 rounded">DO</span>
-               </div>
-               <p className="text-xs text-gray-300 font-medium">Dos sedes estratégicas: Santo Domingo & Punta Cana.</p>
-            </div>
-
-             <div 
-               className="absolute bottom-1/3 right-0 lg:-right-8 bg-white p-4 rounded-xl shadow-lg flex items-center space-x-3 animate-bounce-short transition-transform duration-200 ease-out will-change-transform"
-               style={{ transform: `translateY(${-scrollY * 0.12}px)` }}
-             >
-                <div className="bg-ipp-cyan text-white p-2 rounded-lg">
-                  <Package size={24} />
+                  <p className="text-xs font-black uppercase tracking-[0.4em] text-ipp-navy animate-pulse">IA Generando Visión B2B...</p>
+                  <div className="mt-4 w-32 h-1 bg-gray-200 rounded-full overflow-hidden mx-auto">
+                    <div className="h-full bg-ipp-cyan animate-[progress_2s_infinite] w-1/3"></div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase">Logística</p>
-                  <p className="text-ipp-navy font-bold">Just-in-Time</p>
+              ) : (
+                <img 
+                  src={heroImage!} 
+                  className="w-full h-full object-cover transition-transform duration-1000 ease-out hover:scale-105" 
+                  alt="IPP Commercial B2B Scene" 
+                />
+              )}
+              {/* Subtle Overlay */}
+              {!isLoadingImage && <div className="absolute inset-0 bg-gradient-to-tr from-ipp-navy/20 to-transparent pointer-events-none"></div>}
+            </div>
+
+            {/* Premium Floatables with Parallax Bouncing */}
+            {!isLoadingImage && (
+              <>
+                <div 
+                  className="absolute -top-10 -right-10 z-20 transition-transform duration-500 ease-out will-change-transform"
+                  style={{ transform: `translateY(${-scrollY * 0.12}px)` }}
+                >
+                  <div className="animate-float-slow bg-white/90 backdrop-blur-xl p-6 rounded-3xl shadow-2xl border border-white flex items-center space-x-4 hover:scale-105 transition-transform cursor-pointer">
+                    <div className="bg-ipp-green p-3 rounded-2xl text-white shadow-lg"><ShieldCheck size={24}/></div>
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Garantía</p>
+                      <p className="text-lg font-black text-ipp-navy leading-none">Certificado Bio</p>
+                    </div>
+                  </div>
                 </div>
-             </div>
+                
+                <div 
+                  className="absolute -bottom-6 -left-10 z-20 transition-transform duration-500 ease-out will-change-transform"
+                  style={{ transform: `translateY(${-scrollY * 0.08}px)` }}
+                >
+                  <div className="animate-float-medium bg-ipp-navy/95 backdrop-blur-xl p-6 rounded-3xl shadow-2xl border border-white/10 flex items-center space-x-4 text-white hover:scale-105 transition-transform cursor-pointer">
+                    <div className="bg-ipp-cyan p-3 rounded-2xl shadow-lg"><MapPin size={24}/></div>
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Presencia</p>
+                      <p className="text-lg font-black italic leading-none">Todo el Caribe</p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
+
+        {/* Bottom Glass Bar: Trust Indicators */}
+        <div 
+          className="mt-24 lg:mt-32 w-full bg-white/40 backdrop-blur-md border border-white/20 rounded-3xl p-8 lg:p-12 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-12 transition-transform duration-500 ease-out will-change-transform"
+          style={{ transform: `translateY(${scrollY * 0.02}px)` }}
+        >
+            {[
+              { icon: CheckCircle2, label: "Tasa de Entrega", value: "99.8%", color: "text-ipp-green" },
+              { icon: Package, label: "SKUs Activos", value: "2,500+", color: "text-ipp-cyan" },
+              { icon: Building2, label: "Centros Distribución", value: "Santo Domingo / PC", color: "text-ipp-navy" }
+            ].map((stat, i) => (
+              <div key={i} className="flex items-center space-x-4 w-full lg:w-auto group">
+                <div className={`${stat.color} p-4 bg-white/60 rounded-2xl shadow-sm group-hover:scale-110 transition-transform duration-500`}><stat.icon size={32}/></div>
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stat.label}</p>
+                  <p className="text-2xl font-black text-ipp-navy font-display italic">{stat.value}</p>
+                </div>
+              </div>
+            ))}
+        </div>
       </div>
+
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotate(0); }
+          50% { transform: translateY(-15px) rotate(1.5deg); }
+        }
+        @keyframes float-alt {
+          0%, 100% { transform: translateY(0) rotate(0); }
+          50% { transform: translateY(-25px) rotate(-1deg); }
+        }
+        @keyframes progress {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(300%); }
+        }
+        .animate-float-slow { animation: float 8s ease-in-out infinite; }
+        .animate-float-medium { animation: float-alt 6s ease-in-out infinite; }
+        .font-display { font-family: 'Montserrat', sans-serif; }
+      `}</style>
+      <div id="catalog-anchor" className="absolute bottom-0"></div>
     </div>
   );
 };
