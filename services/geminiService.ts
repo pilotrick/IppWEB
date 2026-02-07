@@ -30,7 +30,7 @@ export const sendChatMessage = async (
       CATÁLOGO DISPONIBLE: ${JSON.stringify(PRODUCTS.map(p => `${p.name} (SKU: ${p.sku}) - $${p.price}`))}.
       
       TONO: Ejecutivo, analítico, experto y dominicano-corporativo. 
-      Usa tu presupuesto de pensamiento para analizar la mejor ruta logística o mix de productos antes de responder.
+      Usa tu presupuesto de pensamiento para analizar la mejor ruta logística o mix de productos antes de responder. Analiza profundamente las implicaciones de costos y tiempos de entrega en el Caribe.
     `;
 
     const userParts: any[] = [{ text: newMessage }];
@@ -98,7 +98,7 @@ export const generateIppMarketingContent = async (
 
 /**
  * Generate high-quality Hero image using gemini-2.5-flash-image
- * Fallback to high-quality stock image if quota exceeded
+ * Updated with a more specific B2B e-commerce prompt including glassmorphic elements.
  */
 export const generateHighQualityHero = async (): Promise<string | null> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -108,7 +108,7 @@ export const generateHighQualityHero = async (): Promise<string | null> => {
       contents: {
         parts: [
           {
-            text: 'Ultra-luxury B2B e-commerce commercial photography. Sharp focus on high-end sustainable packaging (premium kraft bags and recycled cups) on a reflective white surface. The background is a stunning cinematic Caribbean sunrise over a modern, clean-lined logistics port. Integrated into the image are subtle, elegant glassmorphic UI elements: a semi-transparent floating "Search Products..." bar, a glowing "24/7 Logistics" status badge, and a refined "Stock Available" indicator light. Soft morning tropical light, corporate navy blue and lime green accents, photorealistic, 8k resolution, minimalist and professional aesthetic.',
+            text: 'Ultra-luxury B2B e-commerce product staging. Crisp focus on high-end eco-friendly packaging: premium heavy-duty kraft bags and plant-based biodegradable cups with minimalist branding, arranged on a pristine, reflective white marble surface. The backdrop features a breathtaking, cinematic Caribbean sunrise casting golden and soft cyan hues over a state-of-the-art, clean-lined logistics port in the Dominican Republic. Seamlessly integrated into the air are subtle, elegant glassmorphic UI elements: a frosted, semi-transparent search bar with the hint "Search Products...", a delicate glowing badge for "24/7 Logistics", and a soft green LED-style stock availability indicator. Soft morning tropical light, corporate navy blue accents, photorealistic, 8k resolution, professional commercial photography, high-end corporate aesthetic.',
           },
         ],
       },
@@ -124,7 +124,6 @@ export const generateHighQualityHero = async (): Promise<string | null> => {
     throw new Error("No image data returned from model");
   } catch (error: any) {
     console.warn("AI Image generation failed (Quota/429), using premium fallback:", error.message);
-    // Reliable high-end stock image as fallback
     return "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop";
   }
 };

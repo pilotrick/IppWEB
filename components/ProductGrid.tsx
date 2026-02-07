@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Product } from '../types';
 import { PRODUCTS, CATEGORIES } from '../constants';
-import { Plus, Minus, Search, Eye, X, Package, Box, AlertTriangle, CheckCircle2, Filter, SlidersHorizontal, Trash2, Tag, TrendingDown, ShoppingCart, MapPin, Building2, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, ArrowRight, Truck, Loader2, RefreshCw } from 'lucide-react';
+import { Plus, Minus, Search, Eye, X, Package, Box, AlertTriangle, CheckCircle2, Filter, SlidersHorizontal, Trash2, Tag, TrendingDown, ShoppingCart, MapPin, Building2, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, ArrowRight, Truck, Loader2, RefreshCw, ArrowUp } from 'lucide-react';
 
 interface ProductGridProps {
   onAddToCart: (product: Product, quantity: number) => void;
@@ -22,8 +22,9 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
   const [warehouseFilter, setWarehouseFilter] = useState<'all' | 'santoDomingo' | 'puntaCana'>('all');
 
   // Infinite Scroll State
-  const [visibleItemsCount, setVisibleItemsCount] = useState(8);
+  const [visibleItemsCount, setVisibleItemsCount] = useState(4); // Start small to trigger scroll easily in demo
   const [isMoreLoading, setIsMoreLoading] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const clearAllFilters = () => {
@@ -31,7 +32,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
     setSearchQuery('');
     setStockFilter('all');
     setWarehouseFilter('all');
-    setVisibleItemsCount(8);
+    setVisibleItemsCount(4);
   };
 
   const getStockStatus = (stock: number) => {
@@ -74,14 +75,14 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
   const loadMore = useCallback(() => {
     if (!hasMore || isMoreLoading) return;
     setIsMoreLoading(true);
-    // Simulate a brief network delay for UX feel
+    // Simulate a brief network delay for professional feel
     setTimeout(() => {
       setVisibleItemsCount(prev => prev + 4);
       setIsMoreLoading(false);
     }, 600);
   }, [hasMore, isMoreLoading]);
 
-  // Observer for Infinite Scroll
+  // Observer for Infinite Scroll - Optimized for seamless loading with pre-fetching
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -89,19 +90,32 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
           loadMore();
         }
       },
-      { threshold: 0.1, rootMargin: '100px' }
+      { threshold: 0.1, rootMargin: '600px' } // Pre-load even earlier (600px before reaching bottom)
     );
 
-    if (sentinelRef.current) {
-      observer.observe(sentinelRef.current);
+    const currentSentinel = sentinelRef.current;
+    if (currentSentinel) {
+      observer.observe(currentSentinel);
     }
 
-    return () => observer.disconnect();
+    return () => {
+      if (currentSentinel) observer.unobserve(currentSentinel);
+      observer.disconnect();
+    };
   }, [loadMore, hasMore]);
+
+  // Back to top visibility listener
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 1000);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Reset count on filter change
   useEffect(() => {
-    setVisibleItemsCount(8);
+    setVisibleItemsCount(4);
   }, [selectedCategory, searchQuery, stockFilter, warehouseFilter]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -110,6 +124,10 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
     const y = ((e.clientY - top) / height) * 100;
     e.currentTarget.style.setProperty('--x', `${x}%`);
     e.currentTarget.style.setProperty('--y', `${y}%`);
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -130,7 +148,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
                     <X size={24} />
                 </button>
                 
-                {/* Image Section with Magnification Effect */}
                 <div 
                     className="md:w-1/2 bg-gray-50 relative h-80 md:h-auto overflow-hidden cursor-zoom-in group"
                     onMouseMove={handleMouseMove}
@@ -148,7 +165,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
                     </div>
                 </div>
 
-                {/* Content Section */}
                 <div className="md:w-1/2 p-10 md:p-16 flex flex-col justify-center bg-white">
                     <div className="mb-8">
                         <div className="flex items-center space-x-3 mb-4">
@@ -309,24 +325,20 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
               const currentQty = quantities[product.id] || product.minOrder;
 
               return (
-                <div key={product.id} className="group bg-white rounded-[2rem] border border-gray-100 hover:border-ipp-cyan/30 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.02)] hover:shadow-[0_40px_80px_-15px_rgba(0,59,92,0.12)] transition-all duration-500 flex flex-col h-full overflow-hidden relative">
+                <div key={product.id} className="group bg-white rounded-[2rem] border border-gray-100 hover:border-ipp-cyan/30 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.02)] hover:shadow-[0_40px_80px_-15px_rgba(0,59,92,0.12)] transition-all duration-500 flex flex-col h-full overflow-hidden relative animate-fade-in-up">
                   
-                  {/* Part 1: Product Image (Top) */}
                   <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden cursor-pointer" onClick={() => setQuickViewProduct(product)}>
                      <img 
                        src={product.image} 
                        alt={product.name} 
                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
                      />
-                     
-                     {/* Hover Overlay */}
                      <div className="absolute inset-0 bg-ipp-navy/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
                         <button className="bg-white text-ipp-navy px-6 py-3 rounded-xl font-bold text-xs shadow-xl hover:bg-ipp-cyan hover:text-white transition-all transform hover:scale-105 active:scale-95 flex items-center space-x-2">
                            <Eye size={16} />
                            <span>VISTA RÁPIDA</span>
                         </button>
                      </div>
-
                      {product.badge && (
                         <div className="absolute top-4 left-4 z-10">
                            <span className="bg-ipp-navy/90 backdrop-blur-md text-white text-[9px] font-black px-3 py-1.5 rounded-lg shadow-lg uppercase tracking-[0.1em] border border-white/10">
@@ -336,9 +348,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
                      )}
                   </div>
 
-                  {/* Part 2: Product Info (Middle) */}
                   <div className="p-7 flex flex-col flex-grow">
-                     {/* SKU and Stock Status */}
                      <div className="flex justify-between items-center mb-4">
                        <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest font-mono">{product.sku}</span>
                        <div className={`text-[9px] font-black uppercase ${stockStatus.color} flex items-center bg-gray-50 px-2 py-1 rounded-md border border-gray-100`}>
@@ -347,18 +357,15 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
                        </div>
                      </div>
 
-                     {/* Product Name */}
                      <h3 className="text-xl font-bold text-ipp-navy leading-[1.3] mb-4 line-clamp-2 min-h-[3.2rem] group-hover:text-ipp-cyan transition-colors font-display">
                         {product.name}
                      </h3>
                      
-                     {/* Unit of Measure */}
                      <div className="flex items-center text-[10px] text-gray-400 font-bold mb-6 w-fit bg-gray-50/50 px-3 py-1.5 rounded-lg border border-gray-100 uppercase tracking-widest">
                         <Package size={12} className="mr-2 text-ipp-cyan" />
                         {product.udm}
                      </div>
 
-                     {/* Part 3: Price and Stock metrics (Above Action) */}
                      <div className="mt-auto border-t border-gray-50 pt-6 flex items-end justify-between mb-8">
                         <div>
                             <span className="block text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] mb-1">Precio Unit.</span>
@@ -371,26 +378,12 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
                             <span className="text-[10px] font-bold uppercase text-gray-300 block mb-1 tracking-widest">
                                 {warehouseFilter === 'all' ? 'Consolidado' : 'Distribución'}
                             </span>
-                            {warehouseFilter === 'all' ? (
-                                <div className="text-sm font-bold text-gray-600 flex items-baseline justify-end">
-                                    {currentStock.toLocaleString()} <span className="text-[9px] text-gray-400 ml-1 font-bold">uds</span>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-end space-y-0.5">
-                                    <div className={`text-[10px] font-bold flex items-center ${warehouseFilter === 'santoDomingo' ? 'text-ipp-navy' : 'text-gray-400'}`}>
-                                        <span className="text-[8px] mr-1 uppercase opacity-50">SD:</span> 
-                                        {product.inventory?.santoDomingo.toLocaleString() || 0}
-                                    </div>
-                                    <div className={`text-[10px] font-bold flex items-center ${warehouseFilter === 'puntaCana' ? 'text-ipp-navy' : 'text-gray-400'}`}>
-                                        <span className="text-[8px] mr-1 uppercase opacity-50">PC:</span> 
-                                        {product.inventory?.puntaCana.toLocaleString() || 0}
-                                    </div>
-                                </div>
-                            )}
+                            <div className="text-sm font-bold text-gray-600">
+                                {currentStock.toLocaleString()} <span className="text-[9px] text-gray-400 font-bold">uds</span>
+                            </div>
                         </div>
                      </div>
 
-                     {/* Part 4: Actions (Bottom) */}
                      <div className="flex items-center gap-3">
                         <div className="flex items-center border border-gray-100 rounded-xl h-12 w-24 bg-gray-50/50 p-1">
                             <button onClick={() => updateQuantity(product.id, -1, product.minOrder)} className="w-8 h-full flex items-center justify-center text-gray-400 hover:text-ipp-navy transition-colors font-black text-lg">-</button>
@@ -412,17 +405,22 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
           </div>
 
           {/* Sentinel for Infinite Scroll */}
-          <div ref={sentinelRef} className="h-20 w-full flex items-center justify-center mt-20">
+          <div ref={sentinelRef} className="h-40 w-full flex items-center justify-center mt-10">
              {isMoreLoading && (
                 <div className="flex flex-col items-center space-y-4 animate-fade-in-up">
-                   <Loader2 className="animate-spin text-ipp-cyan" size={40} />
-                   <span className="text-[11px] font-black text-gray-400 uppercase tracking-[0.3em] animate-pulse">Actualizando inventario...</span>
+                   <div className="relative">
+                      <Loader2 className="animate-spin text-ipp-cyan" size={48} />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                         <div className="w-2 h-2 bg-ipp-green rounded-full animate-pulse"></div>
+                      </div>
+                   </div>
+                   <span className="text-[11px] font-black text-ipp-navy uppercase tracking-[0.4em] animate-pulse">Optimizando inventario corporativo...</span>
                 </div>
              )}
-             {!hasMore && (
+             {!hasMore && !isMoreLoading && visibleProducts.length > 0 && (
                 <div className="flex flex-col items-center space-y-4 text-gray-300">
-                   <div className="w-16 h-1 bg-gray-200 rounded-full"></div>
-                   <span className="text-[10px] font-black uppercase tracking-[0.4em]">Fin del Catálogo Activo</span>
+                   <div className="w-24 h-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent rounded-full"></div>
+                   <span className="text-[10px] font-black uppercase tracking-[0.4em]">Final del Catálogo - Red IPP</span>
                 </div>
              )}
           </div>
@@ -437,6 +435,15 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
            <button onClick={clearAllFilters} className="bg-ipp-navy text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-ipp-dark shadow-xl transition-all">Restaurar Búsqueda</button>
         </div>
       )}
+
+      {/* Floating Back to Top Button */}
+      <button 
+        onClick={scrollToTop}
+        className={`fixed bottom-10 right-10 z-[50] p-4 bg-ipp-navy text-white rounded-2xl shadow-2xl transition-all duration-500 transform hover:scale-110 active:scale-90 border border-white/10 ${showBackToTop ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}
+        title="Volver Arriba"
+      >
+        <ArrowUp size={24} />
+      </button>
       
     </div>
   );

@@ -97,4 +97,57 @@ export const PRODUCTS: Product[] = [
     minOrder: 1,
     badge: 'Premium'
   },
+  {
+    id: '7',
+    sku: 'IPP-STR-7',
+    name: 'Sorbete de Papel 7.75"',
+    category: 'Vasos y Bebidas',
+    description: 'Sorbete de papel biodegradable de alta resistencia. No se deshace en la bebida. Color blanco puro.',
+    price: 12.00,
+    udm: 'Caja 500u',
+    stock: 1200,
+    inventory: { santoDomingo: 800, puntaCana: 400 },
+    image: 'https://images.unsplash.com/photo-1584281722571-085e337f4803?q=80&w=2070&auto=format&fit=crop',
+    minOrder: 2,
+    badge: 'Eco'
+  },
+  {
+    id: '8',
+    sku: 'IPP-TOW-250',
+    name: 'Papel Toalla Interdoblada',
+    category: 'Limpieza Institucional',
+    description: 'Papel toalla de alta absorción para dispensadores universales. Hoja doble para mayor eficiencia.',
+    price: 35.00,
+    udm: 'Caja 2,400h',
+    stock: 95,
+    inventory: { santoDomingo: 50, puntaCana: 45 },
+    image: 'https://images.unsplash.com/photo-1584622781564-1d9876a13d00?q=80&w=2070&auto=format&fit=crop',
+    minOrder: 1
+  },
+  {
+    id: '9',
+    sku: 'IPP-CL-GL',
+    name: 'Cloro Concentrado 5%',
+    category: 'Limpieza Institucional',
+    description: 'Cloro líquido de grado industrial para desinfección de superficies y áreas comunes.',
+    price: 4.50,
+    udm: 'Galón',
+    stock: 400,
+    inventory: { santoDomingo: 200, puntaCana: 200 },
+    image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=2070&auto=format&fit=crop',
+    minOrder: 4
+  },
+  {
+    id: '10',
+    sku: 'IPP-AL-FOIL',
+    name: 'Papel Aluminio Extra Fuerte',
+    category: 'Food Service',
+    description: 'Papel de aluminio de calibre grueso para cocción y preservación de alimentos. Resistente a altas temperaturas.',
+    price: 28.00,
+    udm: 'Rollo 500ft',
+    stock: 60,
+    inventory: { santoDomingo: 30, puntaCana: 30 },
+    image: 'https://images.unsplash.com/photo-1606787366850-de6330128bfc?q=80&w=2070&auto=format&fit=crop',
+    minOrder: 1
+  }
 ];
