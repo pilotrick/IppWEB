@@ -32,7 +32,6 @@ const Header: React.FC<HeaderProps> = ({ cartCount, onOpenCart }) => {
   if (isAuthenticated) {
     navItems.splice(1, 0, { label: 'Dashboard', path: '/dashboard' });
     navItems.splice(2, 0, { label: 'Catálogo', path: '/catalog' });
-    navItems.splice(3, 0, { label: 'Content Engine', path: '/content-engine' });
   }
 
   return (
@@ -72,7 +71,6 @@ const Header: React.FC<HeaderProps> = ({ cartCount, onOpenCart }) => {
                   className={({ isActive }) => `px-6 py-2.5 rounded-full text-xs font-bold transition-all relative ${isActive ? 'text-ipp-navy bg-white shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-ipp-navy'}`}
                 >
                   <span className="relative z-10 flex items-center">
-                    {item.label === 'Content Engine' && <Sparkles size={12} className="mr-2 text-ipp-cyan animate-pulse" />}
                     {item.label}
                   </span>
                 </NavLink>

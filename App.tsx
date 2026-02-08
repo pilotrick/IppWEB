@@ -9,7 +9,6 @@ import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import ContentEngine from './components/ContentEngine'; // New
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Product, CartItem } from './types';
 
@@ -82,7 +81,6 @@ const AppContent = () => {
           <Route path="/" element={<Home onAddToCart={addToCart} />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard onAddToCart={addToCart} /></ProtectedRoute>} />
           <Route path="/catalog" element={<ProtectedRoute><ProductGrid onAddToCart={addToCart} /></ProtectedRoute>} />
-          <Route path="/content-engine" element={<ProtectedRoute><ContentEngine /></ProtectedRoute>} />
           <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

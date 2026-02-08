@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Product } from '../types';
 import { PRODUCTS } from '../constants';
@@ -62,41 +61,6 @@ export const sendChatMessage = async (
 };
 
 /**
- * IPP Content Engine: Generates marketing copy with deep strategic reasoning
- */
-export const generateIppMarketingContent = async (
-  section: string,
-  specifics: string
-): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  try {
-    const prompt = `
-      Genera contenido B2B de alta conversión para IPP República Dominicana.
-      Sección: ${section}
-      Detalles: ${specifics}
-      
-      REQUISITOS ESTRATÉGICOS:
-      - Enfoque en beneficios operativos (ahorro de espacio, reducción de merma).
-      - Tono premium institucional.
-      - Salida en HTML estructurado para Odoo/Web.
-    `;
-
-    const response = await ai.models.generateContent({
-      model: MODEL_PRO,
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      config: {
-        thinkingConfig: { thinkingBudget: THINKING_BUDGET }
-      }
-    });
-
-    return response.text || "No se pudo generar el contenido estratégico.";
-  } catch (error) {
-    console.error("Content generation error:", error);
-    return "Error en el motor de generación de contenido.";
-  }
-};
-
-/**
  * Generate high-quality Hero image using gemini-2.5-flash-image
  * Updated with a more specific B2B e-commerce prompt including glassmorphic elements.
  */
@@ -149,4 +113,43 @@ export const visualizeBranding = async (base64Image: string, prompt: string): Pr
     }
   }
   return null;
+};
+
+/**
+ * Generate marketing content using deep reasoning
+ */
+export const generateIppMarketingContent = async (section: string, specifics: string): Promise<string> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const systemInstruction = `
+    Eres el Director de Marketing y Contenido Estratégico de International Pack & Paper (IPP).
+    Tu objetivo es redactar contenido persuasivo, profesional y optimizado para B2B (Hoteles, Restaurantes, Clínicas).
+    
+    TONO DE VOZ:
+    - Corporativo pero cercano.
+    - Enfocado en soluciones (ahorro, eficiencia, sostenibilidad).
+    - Uso de terminología logística y de supply chain correcta.
+    
+    TAREA:
+    Generar contenido para la sección: "${section}".
+    Detalles específicos proporcionados por el usuario: "${specifics}".
+    
+    FORMATO:
+    Devuelve el contenido en formato Markdown limpio, listo para ser copiado. Si es HTML, usa etiquetas semánticas.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: MODEL_PRO,
+      contents: `Genera el contenido solicitado para la sección ${section}.`,
+      config: {
+        systemInstruction: systemInstruction,
+        thinkingConfig: { thinkingBudget: THINKING_BUDGET }
+      }
+    });
+
+    return response.text || "No se pudo generar el contenido.";
+  } catch (error) {
+    console.error("Content generation error:", error);
+    return "Error al generar contenido estratégico.";
+  }
 };

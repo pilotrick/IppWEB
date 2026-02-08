@@ -22,7 +22,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
   const [warehouseFilter, setWarehouseFilter] = useState<'all' | 'santoDomingo' | 'puntaCana'>('all');
 
   // Infinite Scroll State
-  const [visibleItemsCount, setVisibleItemsCount] = useState(4); // Start small to trigger scroll easily in demo
+  const [visibleItemsCount, setVisibleItemsCount] = useState(8); 
   const [isMoreLoading, setIsMoreLoading] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -32,13 +32,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
     setSearchQuery('');
     setStockFilter('all');
     setWarehouseFilter('all');
-    setVisibleItemsCount(4);
-  };
-
-  const getStockStatus = (stock: number) => {
-    if (stock > 100) return { label: 'En Stock', color: 'text-emerald-600', dot: 'bg-emerald-500', bg: 'bg-emerald-50' };
-    if (stock > 0) return { label: 'Stock Limitado', color: 'text-amber-600', dot: 'bg-amber-500', bg: 'bg-amber-50' };
-    return { label: 'Sin Stock', color: 'text-red-600', dot: 'bg-red-500', bg: 'bg-red-50' };
+    setVisibleItemsCount(8);
   };
 
   const getProductStock = (product: Product) => {
@@ -115,7 +109,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
 
   // Reset count on filter change
   useEffect(() => {
-    setVisibleItemsCount(4);
+    setVisibleItemsCount(8);
   }, [selectedCategory, searchQuery, stockFilter, warehouseFilter]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -158,11 +152,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
                         alt={quickViewProduct.name} 
                         className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-[2.5] origin-[var(--x)_var(--y)]" 
                     />
-                    <div className="absolute bottom-6 left-6 flex space-x-2">
-                       <span className="bg-ipp-navy text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
-                          Original Quality
-                       </span>
-                    </div>
                 </div>
 
                 <div className="md:w-1/2 p-10 md:p-16 flex flex-col justify-center bg-white">
@@ -174,31 +163,17 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
                           <span className="text-gray-300">|</span>
                           <span className="font-mono text-xs font-bold text-gray-400">SKU: {quickViewProduct.sku}</span>
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-black text-ipp-navy mb-4 font-display leading-[1.1]">{quickViewProduct.name}</h2>
+                        <h2 className="text-3xl md:text-5xl font-black text-ipp-navy mb-4 font-display leading-[1.1]">{quickViewProduct.name}</h2>
                         <p className="text-gray-500 text-lg leading-relaxed mb-8">{quickViewProduct.description}</p>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-6 mb-10">
-                        <div className="p-6 bg-ipp-navy/[0.03] rounded-3xl border border-ipp-navy/5">
-                            <span className="block font-bold text-gray-400 text-[10px] uppercase tracking-[0.2em] mb-2">Precio Corporativo</span>
-                            <div className="flex items-baseline space-x-1">
-                                <span className="text-sm font-bold text-ipp-navy">$</span>
-                                <span className="text-5xl font-black text-ipp-navy tracking-tighter">{quickViewProduct.price.toFixed(2)}</span>
-                            </div>
-                        </div>
-                        <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100">
-                             <span className="block font-bold text-gray-400 text-[10px] uppercase tracking-[0.2em] mb-2">Disponibilidad</span>
-                             <div className="flex items-center space-x-3 mt-1">
-                                <div className={`w-3 h-3 rounded-full animate-pulse ${getStockStatus(getProductStock(quickViewProduct)).dot}`}></div>
-                                <span className={`text-lg font-black ${getStockStatus(getProductStock(quickViewProduct)).color}`}>
-                                    {getProductStock(quickViewProduct).toLocaleString()} uds
-                                </span>
-                             </div>
-                             <p className="text-[10px] text-gray-400 font-bold mt-2 uppercase flex items-center">
-                                <MapPin size={10} className="mr-1" />
-                                {warehouseFilter === 'all' ? 'Red Nacional' : warehouseFilter === 'santoDomingo' ? 'SD Almacén' : 'PC Almacén'}
-                             </p>
-                        </div>
+                    <div className="flex flex-col items-center justify-center py-6 mb-8 border-y-2 border-dashed border-gray-100 bg-gray-50/50 rounded-2xl">
+                         <span className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Precio por Unidad</span>
+                         <div className="flex items-baseline space-x-1">
+                             <span className="text-lg font-bold text-ipp-navy">$</span>
+                             <span className="text-6xl font-black text-ipp-navy tracking-tighter">{quickViewProduct.price.toFixed(2)}</span>
+                         </div>
+                         <span className="text-xs font-bold text-ipp-cyan mt-2 bg-ipp-cyan/10 px-3 py-1 rounded-full">{quickViewProduct.udm}</span>
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-4 mt-auto">
@@ -229,15 +204,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
                             <ShoppingCart size={20} />
                             <span>Añadir a Cotización</span>
                         </button>
-                    </div>
-
-                    <div className="mt-8 pt-6 border-t border-gray-100 flex items-center space-x-6">
-                        <div className="flex items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                           <Truck size={14} className="mr-2 text-ipp-cyan" /> Entrega en 24h
-                        </div>
-                        <div className="flex items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                           <Box size={14} className="mr-2 text-ipp-green" /> Almacenaje Externo
-                        </div>
                     </div>
                 </div>
             </div>
@@ -318,83 +284,95 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
       {/* Products Grid */}
       {visibleProducts.length > 0 ? (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {visibleProducts.map((product) => {
-              const currentStock = getProductStock(product);
-              const stockStatus = getStockStatus(currentStock);
               const currentQty = quantities[product.id] || product.minOrder;
 
               return (
-                <div key={product.id} className="group bg-white rounded-[2rem] border border-gray-100 hover:border-ipp-cyan/30 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.02)] hover:shadow-[0_40px_80px_-15px_rgba(0,59,92,0.12)] transition-all duration-500 flex flex-col h-full overflow-hidden relative animate-fade-in-up">
+                <div key={product.id} className="group bg-white rounded-3xl border border-gray-100 hover:border-ipp-cyan/50 shadow-sm hover:shadow-[0_20px_50px_-12px_rgba(0,59,92,0.15)] transition-all duration-300 flex flex-col h-full overflow-hidden relative animate-fade-in-up">
                   
-                  <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden cursor-pointer" onClick={() => setQuickViewProduct(product)}>
+                  {/* Image Section */}
+                  <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden cursor-pointer p-4" onClick={() => setQuickViewProduct(product)}>
                      <img 
                        src={product.image} 
                        alt={product.name} 
-                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                       className="w-full h-full object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110" 
                      />
-                     <div className="absolute inset-0 bg-ipp-navy/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
-                        <button className="bg-white text-ipp-navy px-6 py-3 rounded-xl font-bold text-xs shadow-xl hover:bg-ipp-cyan hover:text-white transition-all transform hover:scale-105 active:scale-95 flex items-center space-x-2">
-                           <Eye size={16} />
-                           <span>VISTA RÁPIDA</span>
+                     <div className="absolute inset-0 bg-ipp-navy/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[1px]">
+                        <button className="bg-white text-ipp-navy px-4 py-2 rounded-full font-bold text-xs shadow-xl hover:bg-ipp-cyan hover:text-white transition-all transform hover:scale-105 active:scale-95 flex items-center space-x-2">
+                           <Eye size={14} />
+                           <span>Vista Rápida</span>
                         </button>
                      </div>
                      {product.badge && (
                         <div className="absolute top-4 left-4 z-10">
-                           <span className="bg-ipp-navy/90 backdrop-blur-md text-white text-[9px] font-black px-3 py-1.5 rounded-lg shadow-lg uppercase tracking-[0.1em] border border-white/10">
+                           <span className="bg-ipp-navy/90 text-white text-[9px] font-black px-2 py-1 rounded-md shadow-lg uppercase tracking-wider border border-white/10">
                              {product.badge}
                            </span>
                         </div>
                      )}
                   </div>
 
-                  <div className="p-7 flex flex-col flex-grow">
-                     <div className="flex justify-between items-center mb-4">
-                       <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest font-mono">{product.sku}</span>
-                       <div className={`text-[9px] font-black uppercase ${stockStatus.color} flex items-center bg-gray-50 px-2 py-1 rounded-md border border-gray-100`}>
-                          <div className={`w-1.5 h-1.5 rounded-full mr-1.5 shadow-sm ${stockStatus.dot}`}></div>
-                          {stockStatus.label}
-                       </div>
+                  {/* Card Body */}
+                  <div className="p-6 flex flex-col flex-grow">
+                     
+                     {/* Top Meta Info */}
+                     <div className="flex justify-between items-center mb-2">
+                        <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest font-mono bg-gray-50 px-2 py-0.5 rounded">{product.sku}</span>
+                        <span className="text-[9px] font-bold text-ipp-cyan uppercase tracking-wider">{product.category}</span>
                      </div>
 
-                     <h3 className="text-xl font-bold text-ipp-navy leading-[1.3] mb-4 line-clamp-2 min-h-[3.2rem] group-hover:text-ipp-cyan transition-colors font-display">
+                     {/* Product Name */}
+                     <h3 className="text-lg font-bold text-ipp-navy leading-[1.3] mb-4 min-h-[3rem] line-clamp-2 group-hover:text-ipp-cyan transition-colors font-display">
                         {product.name}
                      </h3>
-                     
-                     <div className="flex items-center text-[10px] text-gray-400 font-bold mb-6 w-fit bg-gray-50/50 px-3 py-1.5 rounded-lg border border-gray-100 uppercase tracking-widest">
-                        <Package size={12} className="mr-2 text-ipp-cyan" />
-                        {product.udm}
-                     </div>
 
-                     <div className="mt-auto border-t border-gray-50 pt-6 flex items-end justify-between mb-8">
-                        <div>
-                            <span className="block text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] mb-1">Precio Unit.</span>
-                            <div className="flex items-baseline text-ipp-navy">
-                               <span className="text-sm font-bold mr-0.5">$</span>
-                               <span className="text-3xl font-black tracking-tight">{product.price.toFixed(2)}</span>
-                            </div>
+                     {/* Price Center - Highlighted */}
+                     <div className="flex flex-col items-center justify-center py-4 my-2 bg-gray-50/50 rounded-xl border border-dashed border-gray-200 group-hover:border-ipp-cyan/30 transition-colors">
+                        <div className="flex items-baseline text-ipp-navy">
+                            <span className="text-base font-bold mr-0.5">$</span>
+                            <span className="text-4xl font-black tracking-tighter">{product.price.toFixed(2)}</span>
                         </div>
-                        <div className="text-right">
-                            <span className="text-[10px] font-bold uppercase text-gray-300 block mb-1 tracking-widest">
-                                {warehouseFilter === 'all' ? 'Consolidado' : 'Distribución'}
-                            </span>
-                            <div className="text-sm font-bold text-gray-600">
-                                {currentStock.toLocaleString()} <span className="text-[9px] text-gray-400 font-bold">uds</span>
-                            </div>
+                        <div className="flex items-center text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                             <Package size={10} className="mr-1 text-ipp-cyan" />
+                             Por {product.udm}
                         </div>
                      </div>
 
-                     <div className="flex items-center gap-3">
-                        <div className="flex items-center border border-gray-100 rounded-xl h-12 w-24 bg-gray-50/50 p-1">
-                            <button onClick={() => updateQuantity(product.id, -1, product.minOrder)} className="w-8 h-full flex items-center justify-center text-gray-400 hover:text-ipp-navy transition-colors font-black text-lg">-</button>
-                            <div className="flex-1 text-center text-xs font-black text-ipp-navy">{currentQty}</div>
-                            <button onClick={() => updateQuantity(product.id, 1, product.minOrder)} className="w-8 h-full flex items-center justify-center text-gray-400 hover:text-ipp-navy transition-colors font-black text-lg">+</button>
+                     {/* Warehouse Availability List */}
+                     <div className="mt-4 mb-6 space-y-2.5">
+                        <div className="flex items-center justify-between text-xs">
+                             <div className="flex items-center text-gray-500 font-medium">
+                                <Building2 size={14} className="mr-2 text-ipp-navy" />
+                                Santo Domingo
+                             </div>
+                             <div className={`font-bold px-2 py-0.5 rounded text-[10px] ${product.inventory?.santoDomingo ? 'bg-blue-50 text-ipp-navy' : 'bg-gray-100 text-gray-400'}`}>
+                                {product.inventory?.santoDomingo?.toLocaleString() || 0} u.
+                             </div>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                             <div className="flex items-center text-gray-500 font-medium">
+                                <Building2 size={14} className="mr-2 text-ipp-green" />
+                                Punta Cana
+                             </div>
+                             <div className={`font-bold px-2 py-0.5 rounded text-[10px] ${product.inventory?.puntaCana ? 'bg-green-50 text-ipp-green' : 'bg-gray-100 text-gray-400'}`}>
+                                {product.inventory?.puntaCana?.toLocaleString() || 0} u.
+                             </div>
+                        </div>
+                     </div>
+
+                     {/* Actions Footer */}
+                     <div className="mt-auto flex items-center gap-3">
+                        <div className="flex items-center border border-gray-200 rounded-xl h-12 w-28 bg-white shadow-sm hover:border-ipp-cyan/50 transition-colors">
+                            <button onClick={() => updateQuantity(product.id, -1, product.minOrder)} className="w-9 h-full flex items-center justify-center text-gray-400 hover:text-ipp-navy transition-colors font-bold text-lg">-</button>
+                            <div className="flex-1 text-center text-sm font-black text-ipp-navy">{currentQty}</div>
+                            <button onClick={() => updateQuantity(product.id, 1, product.minOrder)} className="w-9 h-full flex items-center justify-center text-gray-400 hover:text-ipp-navy transition-colors font-bold text-lg">+</button>
                         </div>
                         <button 
                            onClick={() => onAddToCart(product, currentQty)}
-                           className="flex-1 bg-ipp-navy hover:bg-ipp-green text-white h-12 rounded-xl font-bold text-[11px] transition-all flex items-center justify-center gap-2 shadow-lg shadow-ipp-navy/10 transform active:scale-95 uppercase tracking-[0.1em]"
+                           className="flex-1 bg-ipp-navy hover:bg-ipp-green text-white h-12 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-ipp-navy/10 transform active:scale-95 uppercase tracking-wide"
                         >
-                           <ShoppingCart size={16} />
+                           <ShoppingCart size={18} />
                            <span>Añadir</span>
                         </button>
                      </div>
@@ -405,7 +383,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
           </div>
 
           {/* Sentinel for Infinite Scroll */}
-          <div ref={sentinelRef} className="h-40 w-full flex items-center justify-center mt-10">
+          <div ref={sentinelRef} className="h-40 w-full flex items-center justify-center mt-12">
              {isMoreLoading && (
                 <div className="flex flex-col items-center space-y-4 animate-fade-in-up">
                    <div className="relative">
@@ -414,25 +392,25 @@ const ProductGrid: React.FC<ProductGridProps> = ({ onAddToCart }) => {
                          <div className="w-2 h-2 bg-ipp-green rounded-full animate-pulse"></div>
                       </div>
                    </div>
-                   <span className="text-[11px] font-black text-ipp-navy uppercase tracking-[0.4em] animate-pulse">Optimizando inventario corporativo...</span>
+                   <span className="text-[11px] font-black text-ipp-navy uppercase tracking-[0.4em] animate-pulse">Cargando inventario...</span>
                 </div>
              )}
              {!hasMore && !isMoreLoading && visibleProducts.length > 0 && (
                 <div className="flex flex-col items-center space-y-4 text-gray-300">
-                   <div className="w-24 h-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent rounded-full"></div>
-                   <span className="text-[10px] font-black uppercase tracking-[0.4em]">Final del Catálogo - Red IPP</span>
+                   <div className="w-24 h-1 bg-gray-200 rounded-full"></div>
+                   <span className="text-[10px] font-black uppercase tracking-[0.2em]">Fin del Catálogo</span>
                 </div>
              )}
           </div>
         </>
       ) : (
-        <div className="bg-white rounded-[4rem] p-32 text-center border-4 border-gray-50 shadow-2xl animate-fade-in-up">
-           <div className="w-32 h-32 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-              <Search size={56} className="text-gray-200" />
+        <div className="bg-white rounded-[3rem] p-24 text-center border-2 border-gray-100 shadow-xl animate-fade-in-up">
+           <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Search size={40} className="text-gray-300" />
            </div>
-           <h3 className="text-4xl font-black text-ipp-navy font-display mb-4 tracking-tighter">Sin Resultados Estratégicos</h3>
-           <p className="text-gray-500 max-w-lg mx-auto mb-12 text-lg font-medium leading-relaxed">No hemos encontrado productos que coincidan con sus parámetros de búsqueda. Intente con términos más amplios o contacte a un asesor.</p>
-           <button onClick={clearAllFilters} className="bg-ipp-navy text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-ipp-dark shadow-xl transition-all">Restaurar Búsqueda</button>
+           <h3 className="text-2xl font-black text-ipp-navy font-display mb-2">No se encontraron productos</h3>
+           <p className="text-gray-500 max-w-md mx-auto mb-8">Intente ajustar los filtros o su término de búsqueda.</p>
+           <button onClick={clearAllFilters} className="bg-ipp-navy text-white px-8 py-4 rounded-xl font-bold text-sm hover:bg-ipp-dark shadow-lg transition-all">Limpiar Filtros</button>
         </div>
       )}
 
